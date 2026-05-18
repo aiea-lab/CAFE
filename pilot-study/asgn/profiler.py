@@ -14,13 +14,13 @@ THIS_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__)))
 
 def run(args):
     build_question_scoring_map = pacai.util.reflection.fetch(args.build_question_scoring_map)
-    question_name_to_question_fuction_dict = build_question_scoring_map()
+    question_name_to_question_fuction_dict = build_question_scoring_map(args.submission)
 
     assignment_profile_json = {}
     for question_name in question_name_to_question_fuction_dict:
 
         if ((args.question_object_to_profile is not None) and (question_name != args.question_object_to_profile.name)):
-            continue
+                    continue
 
         question_function = question_name_to_question_fuction_dict[question_name]
 
@@ -30,16 +30,14 @@ def run(args):
         profile.disable()
 
         stats = pstats.Stats(profile)
-
         question_profile_json = {}
         for func, (_, number_of_calls, _, _, _) in stats.stats.items():
             file_path, _, func_name = func
 
             clean_file_path = file_path.replace(THIS_DIR, "")
-            question_profile_json[f'{clean_file_path}:{func_name}'] = number_of_calls
+            question_profile_json[f'{file_path}:{func_name}'] = number_of_calls
 
         assignment_profile_json[question_name] = question_profile_json
-
 
     if args.out_path is None:
         print(edq.util.json.dumps(assignment_profile_json, indent = 4))
@@ -71,6 +69,11 @@ def _get_parser():
     parser.add_argument('-o', '--out-path', dest = 'out_path',
         action = 'store', type = str, required = False, default = None,
         help = 'The path to a output the JSON result.'
+    )
+
+    parser.add_argument('-s', '--submission',
+        action = 'store', type = str, required = True,
+        help = 'The path to a submission to use for profiling.'
     )
 
     return parser
